@@ -14,12 +14,12 @@ connectDB();
 app.use(bodyParser.json());
 
 // CORS configuration
-const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS, // Use ALLOWED_ORIGINS from .env or default to allowing all origins
-  optionsSuccessStatus: 200, // For legacy browser support
-};
+// const corsOptions = {
+//   origin: process.env.ALLOWED_ORIGINS, // Use ALLOWED_ORIGINS from .env or default to allowing all origins
+//   optionsSuccessStatus: 200, // For legacy browser support
+// };
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 // Routes
 app.get('/', (req, res) => {

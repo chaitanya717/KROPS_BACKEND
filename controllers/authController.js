@@ -38,10 +38,10 @@ exports.signin = async (req, res) => {
     const validPin = await bcrypt.compare(pin, user.pin);
     if (!validPin) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id }, "KROPS717", { expiresIn: '1h' });
 
     // Verify the token to get user details
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+    const decodedToken = jwt.verify(token, "KROPS717");
 
     // Retrieve the user details based on the token
     const userDetails = await User.findById(decodedToken.id).select('username mobileNumber _id'); // Exclude _id from the response

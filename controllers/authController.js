@@ -1,14 +1,13 @@
-const User = require('../models/user');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const otpUtils = require('../utils/otpUtils');
-const nodemailer = require('nodemailer');
+const User = require("../models/user");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const otpUtils = require("../utils/otpUtils");
+const nodemailer = require("nodemailer");
 
 // Sign Up
 exports.signup = async (req, res) => {
   const { username, mobileNumber, pin } = req.body;
   console.log(username, mobileNumber, pin);
-  
 
   try {
     const hashedPin = await bcrypt.hash(pin, 10);
@@ -16,13 +15,15 @@ exports.signup = async (req, res) => {
     const user = new User({
       username,
       mobileNumber,
-      pin: hashedPin
+      pin: hashedPin,
     });
 
     await user.save();
-    res.status(201).json({ message: 'User registered successfully' });
+    res
+      .status(201)
+      .json({ message: "User registered successfully", userId: user._id });
   } catch (err) {
-    res.status(400).json({ message: 'User already exists or invalid data' });
+    res.status(400).json({ message: "User already exists or invalid data" });
   }
 };
 
@@ -33,26 +34,28 @@ exports.signin = async (req, res) => {
 
   try {
     const user = await User.findOne({ mobileNumber });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const validPin = await bcrypt.compare(pin, user.pin);
-    if (!validPin) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!validPin)
+      return res.status(400).json({ message: "Invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, "KROPS717", { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id }, "KROPS717", { expiresIn: "1h" });
 
     // Verify the token to get user details
     const decodedToken = jwt.verify(token, "KROPS717");
 
     // Retrieve the user details based on the token
-    const userDetails = await User.findById(decodedToken.id).select('username mobileNumber _id'); // Exclude _id from the response
+    const userDetails = await User.findById(decodedToken.id).select(
+      "username mobileNumber _id"
+    ); // Exclude _id from the response
 
     // Return user details along with the token
     res.json({ user: userDetails });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 // Forgot PIN - Send OTP
 exports.forgotPin = async (req, res) => {
@@ -60,7 +63,7 @@ exports.forgotPin = async (req, res) => {
 
   try {
     const user = await User.findOne({ mobileNumber });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const otp = otpUtils.generateOTP();
     user.otp = otp;
@@ -70,7 +73,7 @@ exports.forgotPin = async (req, res) => {
     // You can send the OTP via email/SMS here
     res.json({ message: `OTP sent to ${mobileNumber}` });
   } catch (err) {
-    res.status(500).json({ message: 'Error sending OTP' });
+    res.status(500).json({ message: "Error sending OTP" });
   }
 };
 
@@ -80,7 +83,8 @@ exports.resetPin = async (req, res) => {
 
   try {
     const user = await User.findOne({ mobileNumber, otp });
-    if (!user || user.otpExpiry < Date.now()) return res.status(400).json({ message: 'OTP expired or invalid' });
+    if (!user || user.otpExpiry < Date.now())
+      return res.status(400).json({ message: "OTP expired or invalid" });
 
     const hashedPin = await bcrypt.hash(newPin, 10);
     user.pin = hashedPin;
@@ -88,8 +92,8 @@ exports.resetPin = async (req, res) => {
     user.otpExpiry = undefined;
 
     await user.save();
-    res.json({ message: 'PIN reset successfully' });
+    res.json({ message: "PIN reset successfully" });
   } catch (err) {
-    res.status(500).json({ message: 'Error resetting PIN' });
+    res.status(500).json({ message: "Error resetting PIN" });
   }
 };
